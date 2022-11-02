@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import styled from "styled-components";
 
 import { useLocation } from "react-router-dom";
+import Chart from "./Chart";
+import Price from "./Price";
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -22,6 +24,28 @@ const CoinsList = styled.ul``;
 const Title = styled.h1`
   font-size: 48px;
   color: ${(props) => props.theme.accentColor};
+`;
+
+const Overview = styled.div`
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 10px;
+`;
+const OverviewItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  span:first-child {
+    font-size: 10px;
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+const Description = styled.p`
+  margin: 20px 0px;
 `;
 
 const Loading = styled.span`
@@ -96,6 +120,7 @@ interface PriceData {
     };
   };
 }
+
 function Coin() {
   const [loading, setLoading] = useState(true);
   //useParams URL의 파라미터 사용가능
@@ -103,30 +128,51 @@ function Coin() {
   const { state } = useLocation() as RouteState;
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
-
+  useEffect(() => {
+    console.log("state", state);
+  }, []);
   useEffect(() => {
     (async () => {
       const infoData = await (
         await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
       ).json();
-      console.log("data", infoData);
+      console.log("infoData", infoData);
       const priceData = await (
         await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
       ).json();
-      console.log("data", priceData);
+      console.log("priceData", priceData);
 
       setInfo(infoData);
       setPriceInfo(priceData);
+      setLoading(false);
+      //API롭부터 데이터를 request한 후에 setLoading을 false로 바꿔야함
     })();
-  }, []);
+    //coinId는 url에서 절대 바뀌지 않기 때문에 모든 API request가 1회만 이루어짐
+  }, [coinId]);
   return (
     <Container>
       <Header>
         {/* 외부에서 디테일 페이지로 접근할 경우 state를 가져오지 못 함 */}
-        <Title> {state || "Loading"}</Title>
+        <Title> {state ? state : loading ? "Loading" : info?.name}</Title>
       </Header>
       {loading ? <Loading>Loading...</Loading> : null}
+      <Description>{info?.description}</Description>
+      <Overview>
+        <OverviewItem>
+          <span>Total Supply</span>
+          <span>{priceInfo?.total_supply}</span>
+        </OverviewItem>
+        <OverviewItem>
+          <span>Max Supply</span>
+          <span>{priceInfo?.max_supply}</span>
+        </OverviewItem>
+      </Overview>
+      <Routes>
+        <Route path="/chart" element={<Chart />} />
+        <Route path="/price" element={<Price />} />
+      </Routes>
     </Container>
+    /* 두가지 route render  한번에 하나의 route render를 위해 Switch 사용*/
   );
 }
 
