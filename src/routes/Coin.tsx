@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Link,
   Route,
@@ -8,6 +8,7 @@ import {
   useParams,
 } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
 import Chart from "./Chart";
 import Price from "./Price";
 
@@ -115,7 +116,7 @@ interface InfoData {
   last_data_at: string;
 }
 
-interface PriceData {
+interface TickerData {
   id: string;
   name: string;
   symbol: string;
@@ -149,53 +150,63 @@ interface PriceData {
 }
 
 function Coin() {
-  const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(true);
   //useParams URL의 파라미터 사용가능
   const { coinId } = useParams<{ coinId: string }>();
   const { state } = useLocation() as RouteState;
-  const [info, setInfo] = useState<InfoData>();
-  const [priceInfo, setPriceInfo] = useState<PriceData>();
+  // const [info, setInfo] = useState<InfoData>();
+  // const [priceInfo, setPriceInfo] = useState<PriceData>();
   const priceMatch = useMatch("/:coinId/price");
   const chartMatch = useMatch("/:coinId/chart");
-  // Tab styled component에 prop 추가
-  console.log(priceMatch);
-  useEffect(() => {
-    (async () => {
-      const infoData = await (
-        await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-      ).json();
-      console.log("infoData", infoData);
-      const priceData = await (
-        await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-      ).json();
-      console.log("priceData", priceData);
+  const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+    ["info", coinId],
+    () => fetchCoinInfo("coinId")
+  );
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<TickerData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers("coinId")
+  );
+  //fetcher fn에 props를 넘겨줘야함
 
-      setInfo(infoData);
-      setPriceInfo(priceData);
-      setLoading(false);
-      //API롭부터 데이터를 request한 후에 setLoading을 false로 바꿔야함
-    })();
-    //coinId는 url에서 절대 바뀌지 않기 때문에 모든 API request가 1회만 이루어짐
-  }, [coinId]);
+  // useEffect(() => {
+  //   (async () => {
+  //     const infoData = await (
+  //       await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+  //     ).json();
+  //     console.log("infoData", infoData);
+  //     const priceData = await (
+  //       await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+  //     ).json();
+  //     console.log("priceData", priceData);
+
+  //     setInfo(infoData);
+  //     setPriceInfo(priceData);
+  //     setLoading(false);
+  //     //API롭부터 데이터를 request한 후에 setLoading을 false로 바꿔야함
+  //   })();
+  //   //coinId는 url에서 절대 바뀌지 않기 때문에 모든 API request가 1회만 이루어짐
+  // }, [coinId]);
+  const loading = infoLoading || tickersLoading;
+
   return (
     <Container>
       <Header>
         {/* 외부에서 디테일 페이지로 접근할 경우 state를 가져오지 못 함 */}
-        <Title> {state ? state : loading ? "Loading" : info?.name}</Title>
+        <Title> {state ? state : loading ? "Loading" : infoData?.name}</Title>
       </Header>
       {loading ? (
         <Loading>Loading...</Loading>
       ) : (
         <div>
-          <Description>{info?.description}</Description>
+          <Description>{infoData?.description}</Description>
           <Overview>
             <OverviewItem>
               <span>Total Supply</span>
-              <span>{priceInfo?.total_supply}</span>
+              <span>{tickersData?.total_supply}</span>
             </OverviewItem>
             <OverviewItem>
               <span>Max Supply</span>
-              <span>{priceInfo?.max_supply}</span>
+              <span>{tickersData?.max_supply}</span>
             </OverviewItem>
           </Overview>
 
