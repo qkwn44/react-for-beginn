@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { Route, Routes, useParams } from "react-router-dom";
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  useMatch,
+  useParams,
+} from "react-router-dom";
 import styled from "styled-components";
-
-import { useLocation } from "react-router-dom";
 import Chart from "./Chart";
 import Price from "./Price";
 
@@ -52,6 +57,28 @@ const Loading = styled.span`
   text-align: center;
   font-size: 24px;
   color: white;
+`;
+const Tabs = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 25px 0px;
+  gap: 10px;
+`;
+
+const Tab = styled.span<{ isActive: boolean }>`
+  // useMatch를 통해 값 받음
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 400;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 7px 0px;
+  border-radius: 10px;
+  color: ${(props) =>
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
+  a {
+    display: block;
+  }
 `;
 
 interface RouteParams {
@@ -128,9 +155,10 @@ function Coin() {
   const { state } = useLocation() as RouteState;
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
-  useEffect(() => {
-    console.log("state", state);
-  }, []);
+  const priceMatch = useMatch("/:coinId/price");
+  const chartMatch = useMatch("/:coinId/chart");
+  // Tab styled component에 prop 추가
+  console.log(priceMatch);
   useEffect(() => {
     (async () => {
       const infoData = await (
@@ -167,9 +195,19 @@ function Coin() {
           <span>{priceInfo?.max_supply}</span>
         </OverviewItem>
       </Overview>
+
+      <Tabs>
+        <Tab isActive={chartMatch !== null}>
+          <Link to={`/${coinId}/chart`}>Chart</Link>
+        </Tab>
+        <Tab isActive={priceMatch !== null}>
+          <Link to={`/${coinId}/price`}>Price</Link>
+        </Tab>
+      </Tabs>
+
       <Routes>
-        <Route path="/chart" element={<Chart />} />
-        <Route path="/price" element={<Price />} />
+        <Route path="chart" element={<Chart />} />
+        <Route path="price" element={<Price />} />
       </Routes>
     </Container>
     /* 두가지 route render  한번에 하나의 route render를 위해 Switch 사용*/
