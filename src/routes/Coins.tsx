@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoins } from "../api";
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -51,7 +52,7 @@ const Img = styled.img`
   height: 25px;
   margin-right: 10px;
 `;
-interface CoinInterface {
+interface ICoin {
   id: string;
   name: string;
   symbol: string;
@@ -60,29 +61,21 @@ interface CoinInterface {
   is_active: boolean;
   type: string;
 }
+// const allCoins = "allCoins";
 function Coins() {
-  // 화면이 이동될때 마다 state가 갱신 되기 때문에 페이지에 진입 할 때마다 state가 load됨
-  const [coins, setCoins] = useState<CoinInterface[]>([]); //empty array
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    // 즉시 실행
-    (async () => {
-      const response = await fetch("https://api.coinpaprika.com/v1/coins");
-      const json = await response.json();
-      setLoading(false);
-      setCoins(json.slice(0, 100));
-    })();
-  }, []);
+  const { isLoading, data } = useQuery<ICoin[]>(["allCoins"], fetchCoins);
+  // data : react query가 데이터를 캐시에 저장해두기 때문에 중복해서 api를 호출하지 않음. 데이터 유지
+
   return (
     <Container>
       <Header>
         <Title>코인</Title>
       </Header>
-      {loading ? (
+      {isLoading ? (
         <Loading>Loading...</Loading>
       ) : (
         <CoinsList>
-          {coins.map((coin) => (
+          {data?.slice(0, 100).map((coin) => (
             <Coin key={coin.id}>
               <Link to={`/${coin.id}`} state={coin.name}>
                 <Img

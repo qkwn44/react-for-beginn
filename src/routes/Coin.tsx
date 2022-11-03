@@ -183,32 +183,37 @@ function Coin() {
         {/* 외부에서 디테일 페이지로 접근할 경우 state를 가져오지 못 함 */}
         <Title> {state ? state : loading ? "Loading" : info?.name}</Title>
       </Header>
-      {loading ? <Loading>Loading...</Loading> : null}
-      <Description>{info?.description}</Description>
-      <Overview>
-        <OverviewItem>
-          <span>Total Supply</span>
-          <span>{priceInfo?.total_supply}</span>
-        </OverviewItem>
-        <OverviewItem>
-          <span>Max Supply</span>
-          <span>{priceInfo?.max_supply}</span>
-        </OverviewItem>
-      </Overview>
+      {loading ? (
+        <Loading>Loading...</Loading>
+      ) : (
+        <div>
+          <Description>{info?.description}</Description>
+          <Overview>
+            <OverviewItem>
+              <span>Total Supply</span>
+              <span>{priceInfo?.total_supply}</span>
+            </OverviewItem>
+            <OverviewItem>
+              <span>Max Supply</span>
+              <span>{priceInfo?.max_supply}</span>
+            </OverviewItem>
+          </Overview>
 
-      <Tabs>
-        <Tab isActive={chartMatch !== null}>
-          <Link to={`/${coinId}/chart`}>Chart</Link>
-        </Tab>
-        <Tab isActive={priceMatch !== null}>
-          <Link to={`/${coinId}/price`}>Price</Link>
-        </Tab>
-      </Tabs>
+          <Tabs>
+            <Tab isActive={chartMatch !== null}>
+              <Link to={`/${coinId}/chart`}>Chart</Link>
+            </Tab>
+            <Tab isActive={priceMatch !== null}>
+              <Link to={`/${coinId}/price`}>Price</Link>
+            </Tab>
+          </Tabs>
 
-      <Routes>
-        <Route path="chart" element={<Chart />} />
-        <Route path="price" element={<Price />} />
-      </Routes>
+          <Routes>
+            <Route path="chart" element={<Chart />} />
+            <Route path="price" element={<Price />} />
+          </Routes>
+        </div>
+      )}
     </Container>
     /* 두가지 route render  한번에 하나의 route render를 위해 Switch 사용*/
   );
