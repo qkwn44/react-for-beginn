@@ -160,11 +160,12 @@ function Coin() {
   const chartMatch = useMatch("/:coinId/chart");
   const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
     ["info", coinId],
-    () => fetchCoinInfo("coinId")
+    () => fetchCoinInfo(coinId)
+    //익명함수로 fetcher함수 호출 후 return
   );
   const { isLoading: tickersLoading, data: tickersData } = useQuery<TickerData>(
     ["tickers", coinId],
-    () => fetchCoinTickers("coinId")
+    () => fetchCoinTickers(coinId)
   );
   //fetcher fn에 props를 넘겨줘야함
 
@@ -220,7 +221,7 @@ function Coin() {
           </Tabs>
 
           <Routes>
-            <Route path="chart" element={<Chart />} />
+            <Route path="chart" element={<Chart coinId={coinId as string} />} />
             <Route path="price" element={<Price />} />
           </Routes>
         </div>
@@ -231,3 +232,5 @@ function Coin() {
 }
 
 export default Coin;
+
+//
